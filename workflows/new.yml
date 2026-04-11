@@ -1,0 +1,54 @@
+name: Devops Project
+
+on:
+    push:
+     branches:
+      - main
+
+jobs:
+ build:
+  runs-on: ubuntu-latest
+  steps:
+    - uses: actions/checkout@v4
+
+    - name:  USing NOde
+      uses: actions/setup-node@v4
+
+    - name: Npm install
+      run : npm install 
+      working-directory: ./devops-azure
+
+    - name: Npm build
+      run : npm run build
+      working-directory: ./devops-azure
+    
+    - name: Npm test
+      run : npm test
+      working-directory: ./devops-azure
+
+    - name: docker login
+      run : echo ${{secrets.DOCKER_PASSWORD}} | docker login -u ${{secrets.DOCKER_USERNAME}} --password-stdin
+
+    - name: Docker Image Tag
+      run : echo "TAG=${GITHUB_SHA::7}" >> $GITHUB_ENV
+
+    - name: Docker build 
+      run : docker build -t ${{secrets.DOCKER_USERNAME}}/devops-azure:$TAG .
+      working-directory: ./devops-azure
+
+    - name: Docker Push
+      run : docker push ${{secrets.DOCKER_USERNAME}}/devops-azure:$TAG
+
+    
+    - name: Update image tag in k8s manifest
+      run: |
+        sed -i "s|image: .*|image: ${{secrets.DOCKER_USERNAME}}/devops-azure:${TAG}|" k8s/deployment.yaml
+
+    - name: Commit updated manifest
+      run: |
+       git config user.name "bishalparikhh"
+       git config user.email "parikhbishal@gmail.com"
+       git add k8s/deployment.yaml
+       git commit -m "deploy: update image tag to ${TAG}"
+       git push
+      
