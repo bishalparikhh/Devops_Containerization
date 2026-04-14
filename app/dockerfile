@@ -1,9 +1,27 @@
 FROM python:3.10-alpine
 
+ARG UID=1000
+ARG GID=1000
+
 WORKDIR /app
 
-COPY . /app
+# Install build tools
+RUN apk add --no-cache build-base
 
+# Create group and user
+RUN addgroup -g ${GID} bishal \
+ && adduser -D -u ${UID} -G bishal bishal
+
+# Set ownership
+RUN chown -R bishal:bishal /app
+
+# Copy files with correct ownership
+COPY --chown=bishal:bishal . /app
+
+# Switch to non-root user
+USER bishal
+
+# Install dependencies
 RUN pip install flask
 
 EXPOSE 3000

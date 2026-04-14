@@ -25,7 +25,8 @@ resource "azurerm_kubernetes_cluster" "example" {
   }
 
   tags = {
-    Environment = "Devops_Project"
+    Environment = "Containerization_Project"
+    Application = "BIshal
   }
 }
 
