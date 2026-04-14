@@ -18,11 +18,13 @@ RUN chown -R bishal:bishal /app
 # Copy files with correct ownership
 COPY --chown=bishal:bishal . /app
 
+RUN pip install flask
+
 # Switch to non-root user
 USER bishal
 
 # Install dependencies
-RUN pip install flask
+
 
 EXPOSE 3000
 
